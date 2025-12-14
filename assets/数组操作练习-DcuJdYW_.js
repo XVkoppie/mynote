@@ -239,13 +239,141 @@ const arr2 = [2, 3, 4];
 const nestedArr = [1, [2, 3], [4, [5, 6]]];
 // 编写 flatten 函数，将数组展平为一维数组
 \`\`\`
+1. 解答：.flat(Infinity)可以展开任意深度的数组
+\`\`\`js
+const fn=(arr)=>{
+    return arr.flat(Infinity)
+}
+\`\`\`
+2. 解答
+\`\`\`js
+const flatten=(arr)=>{
+    let newArr=[]
+    for(let i in arr){
+        if(Array.isArray(arr[i])){
+            // 递归展平子数组，并将结果合并到 newArr 中
+            //newArr = newArr.concat(flatten(arr[i]));
+            newArr.push(...flatten(arr[i]))
+        }else{
+            newArr[i]=arr[i]
+        }
+    }
+        return newArr
+}
+\`\`\`
+练习1： 控制展平深度
+\`\`\`js
+// 实现一个可以指定展平深度的 flatten 函数
+const flattenDepth = (arr, depth = 1) => {
+  // 你的代码 here
+};
 
+console.log(flattenDepth([1, [2, [3, [4]]]], 2)); // [1, 2, 3, [4]]
+\`\`\`
+解答：
+\`\`\`js
+ const flattenDepth=(arr,depth=1)=>{
+    let newArr=[]
+    if(depth>0){
+    for(let i=0;i<arr.length;i++){
+        if(Array.isArray(arr[i])){
+            newArr.push(...flattenDepth(arr[i],depth-1))
+        }else{
+            newArr.push(arr[i])
+        }
+    }
+    }else{
+        newArr.push(...arr)
+    }
+    return newArr
+}
+\`\`\`
 ### 🟠6. 数组元素统计
+练习1：
 \`\`\`javascript
 const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'banana'];
 // 统计每种水果出现的次数：{apple: 2, banana: 3, orange: 1}
 \`\`\`
+解答：
+\`\`\`js
+ const fn=(arr)=>{
+     return arr.reduce((acc,val)=>{
+      acc[val]=(acc[val]||0)+1
+      return acc
+     },{})
+    }
+\`\`\`
+这样更安全
+\`\`\`js
+ const fn=(arr)=>{
+     return arr.reduce((acc,val)=>{
+      acc[val]=(acc[val]??0)+1
+      return acc
+     },{})
+    }
+\`\`\`
+练习1：找出出现次数最多的水果
+\`\`\`javascript
+// 输入: ['apple', 'banana', 'apple', 'orange', 'banana', 'banana']
+// 输出: 'banana'（或 ['banana'] 如果有多个并列第一）
+const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'banana'];
+\`\`\`
+解答：
+\`\`\`js
+ const fn=(arr)=>{
+    const res=Object.entries(
+        arr.reduce((acc,val)=>{
+            acc[val]=(acc[val]||0)+1
+            return acc
+        },{})
+    ).reduce((acc,[fruit,num])=>{
+        if(!acc.max||num>acc.max){
+            return {max:num,fruits:[fruit]}
+        }
+        if(acc.max===num){
+            acc.fruits.push(fruit)
+        }
+        return acc
+    },{}).fruits
+    return res
+   }
+\`\`\`
 
+练习 2：按出现次数排序
+\`\`\`javascript
+输入: ['apple', 'banana', 'apple', 'orange', 'banana', 'banana']
+输出: ['banana', 'apple', 'orange']
+// 或输出: {banana: 3, apple: 2, orange: 1}
+\`\`\`
+解答：
+\`\`\`js
+const fn=(arr)=>{
+const res=Object.entries(
+    arr.reduce((acc,val)=>{
+        acc[val]=(acc[val]||0)+1
+        return acc
+    },{})
+).sort(([fruit1,num1],[fruit2,num2])=>num2-num1)
+return res
+}
+\`\`\`
+解答 3：过滤出现次数少于 N 次的水果
+\`\`\`javascript
+输入: ['apple', 'banana', 'apple', 'orange', 'banana', 'banana'], 2
+输出: ['apple', 'banana']（出现2次或以上的）
+\`\`\`
+解答：
+\`\`\`js
+const fn=(arr,num)=>{
+const res=Object.entries(
+    arr.reduce((acc,val)=>{
+        acc[val]=(acc[val]||0)+1
+        return acc
+    },{})
+).filter(([fruit,val])=>val>=num)
+return res
+}
+\`\`\`
 ### 🟠7. 按条件分组
 \`\`\`javascript
 const people = [
@@ -256,7 +384,48 @@ const people = [
 ];
 // 按年龄分组：{25: ['Alice', 'Charlie'], 30: ['Bob', 'David']}
 \`\`\`
+解答：
+\`\`\`js
+ const fn=(arr,key)=>{
+    return arr.reduce((acc,item)=>{
+    let groupKey=item[key]
+    if(!acc[groupKey]){
+        acc[groupKey]=[]
+    }
+    acc[groupKey].push(item)
+    return acc
+    },{})
+}
+\`\`\`
+🔴 递归分组
+\`\`\`js
+const fn=(arr,groupFns)=>{
+        //分组方法没有了就返回
+    if(groupFns.length===0)return arr;
+    //解构分组方法
+    const [firstFn,...restFns]=groupFns
 
+    const grouped=arr.reduce((acc,val)=>{
+        const key=firstFn(val)
+        if(!acc[key]){
+            acc[key]=[]
+        }
+        acc[key].push(val)
+        return acc
+    },{})
+
+    Object.keys(grouped).forEach(key=>{
+        grouped[key]=fn(grouped[key],restFns)
+    })
+    console.log("🚀 ~ fn ~ grouped:", grouped)
+    return grouped
+}
+
+const res=fn(products,[
+    item=>item.category,
+    item=>item.price>2?'expensive':'cheap'
+])
+\`\`\`
 ### 🟠8. 寻找数组交集、并集、差集
 \`\`\`javascript
 const arrA = [1, 2, 3, 4];
@@ -264,8 +433,51 @@ const arrB = [3, 4, 5, 6];
 // 求交集：[3, 4]
 // 求并集：[1, 2, 3, 4, 5, 6]  
 // 求差集(A有B没有)：[1, 2]
-\`\`\`
+//对称差集：A和B各自独有的元素[1, 2, 5, 6]
 
+\`\`\`
+解答：
+\`\`\`js
+const arrA = [1, 2, 3, 4];
+const arrB = [3, 4, 5, 6];
+const arr=[...arrA,...arrB]
+// 求交集：[3, 4]
+const fn1=()=>{
+    return arr.filter((item,index)=>arr.indexOf(item)!==index)
+}
+// 求并集：[1, 2, 3, 4, 5, 6]  
+const fn2=()=>{
+    return arr.filter((item,index)=>arr.indexOf(item)===index)
+}
+// 求差集(A有B没有)：[1, 2]
+const fn3=()=>{
+    return arrA.filter(item=>!arrB.includes(item))
+}
+//对称差集：A和B各自独有的元素[1, 2, 5, 6]
+const fn4=()=>{
+    return[
+        ...arrA.filter(item=>!arrB.includes(item)),
+        ...arrB.filter(item=>!arrA.includes(item))
+    ]
+}
+\`\`\`
+优化：使用Set提高查找效率（O(1) vs O(n)）
+\`\`\`js
+const fn=()=>{
+    const setA=new Set(arrA)
+    const setB=new Set(arrB)
+
+    // 交集
+    const intersection=[...setA].filter(x=>setB.has(x))
+
+    // 差集
+    const difference=[...setA].filter(x=>!setB.has(x))
+
+    // 并集
+    const union=[... new Set([...setA,...setB])]
+    return {intersection,difference,union}
+}
+\`\`\`
 ## 💪 高级题目 (挑战思维)
 
 ### 🔴9. 数组乱序 (Fisher-Yates洗牌算法)
@@ -273,13 +485,63 @@ const arrB = [3, 4, 5, 6];
 const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 // 实现真正的随机打乱，每个排列出现的概率相等
 \`\`\`
-
+Fisher-Yates 洗牌算法：
+\`\`\`js
+function fn(arr){
+    for(let i=arr.length-1;i>0;i--){
+        let j=Math.floor(Math.random()*(i+1))
+        const temp=arr[i]
+        arr[i]=arr[j]
+        arr[j]=temp
+    }
+    return arr
+}
+\`\`\`
+sort不能完全随机打乱
+\`\`\`js
+const fn=()=>{
+    return arr.sort(()=>Math.random()-0.5)
+}
+\`\`\`
 ### 🔴10. 数组分块
 \`\`\`javascript
 const arr = [1, 2, 3, 4, 5, 6, 7];
 // 按指定大小分块，chunk(arr, 3) => [[1,2,3], [4,5,6], [7]]
 \`\`\`
+解答:
+\`\`\`js
+//for循环
+const fn1=(arr,size)=>{
+    let res=[]
+    for(let i=0;i<arr.length;i+=size){
+        res.push(arr.slice(i,i+size))
+    }
+    return res
+}
 
+//reduce
+const fn2=(arr,size)=>{
+    return arr.reduce((res,val,index)=>{
+        const cunkIndex=Math.floor(index/size)
+        if(!res[cunkIndex]){
+            res[cunkIndex]=[]
+        }
+        res[cunkIndex].push(val)
+        return res
+    },[])
+}
+
+//while循环
+const fn3=(arr,size)=>{
+    let res=[]
+    let index=0
+    while(index<arr.length){
+        res.push(arr.slice(index,index+size))
+        index+=size
+    }
+    return res
+}
+\`\`\`
 ### 🔴11. 异步数组处理
 \`\`\`javascript
 const urls = ['url1', 'url2', 'url3'];
