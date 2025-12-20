@@ -33,17 +33,17 @@ HTTPS = HTTP + SSL/TLS
 
 ### 3XX 重定向
 🔴 需要进一步操作
-- \`301 Moved Permanently\`：永久重定向
+- \`301 Moved Permanently\`：永久重定向(网站换域名了)
 - \`302 Found\`：临时重定向（如未登录跳转登录页）
 - \`304 Not Modified\`：使用缓存资源
 
 ### 4XX 客户端错误
 🔴 请求错误
 - \`400 Bad Request\`：错误请求
-- \`401 Unauthorized\`：未授权
-- \`403 Forbidden\`：禁止访问
+- \`401 Unauthorized\`：未授权(需要登录/验证身份)
+- \`403 Forbidden\`：禁止访问(登录了但权限不够)
 - \`404 Not Found\`：资源不存在
-- \`405 Method Not Allowed\`：不允许的请求方法
+- \`405 Method Not Allowed\`：请求方法不对
 - \`408 Request Timeout\`：请求超时
 - \`451 Unavailable For Legal Reasons\`：法律限制
 

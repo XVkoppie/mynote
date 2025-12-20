@@ -219,4 +219,170 @@ const startEdit = (content) => {\r
 2. **样式导入**：必须引入 \`github-markdown-css\`\r
 3. **安全警告**：\`v-html\` 会渲染任意HTML，确保内容可信\r
 4. **性能优化**：文件较多时可使用 \`eager: false\` 懒加载\r
-`;export{r as default};
+\r
+\r
+## 代码\r
+\r
+### 数组读取\r
+\`\`\`js\r
+import { marked } from 'marked'\r
+import { onMounted, ref } from 'vue'\r
+\r
+const fileList = ref([\r
+  { name: 'note1', path: '/src/assets/markdown/note1.md' },\r
+  { name: 'note2', path: '/src/assets/markdown/note2.md' },\r
+  { name: 'note3', path: '/src/assets/markdown/note3.md' },\r
+  { name: 'note4', path: '/src/assets/markdown/note-4.md' },\r
+])\r
+// 当前显示的markdown内容\r
+const currentMarkdown = ref('')\r
+// 编译后的HTML\r
+const compiledMarkdown = ref('')\r
+const loadMarkdown = async (filePath) => {\r
+  try {\r
+    const res = await fetch(filePath)\r
+    const markdownText = await res.text()\r
+    // 这里可以使用marked或其他库将Markdown转换为HTML\r
+    currentMarkdown.value = markdownText\r
+    compiledMarkdown.value = marked(markdownText)\r
+  } catch (err) {\r
+    console.error('Error loading markdown file:', err)\r
+    currentMarkdown.value = '无法加载该文件。'\r
+    compiledMarkdown.value = '<p>无法加载该文件。</p>'\r
+  }\r
+}\r
+onMounted(() => {\r
+  if (fileList.value.length > 0) {\r
+    loadMarkdown(fileList.value[0].path)\r
+  }\r
+})\r
+\`\`\`\r
+\`\`\`html\r
+<template>\r
+  <div class="container">\r
+    <!-- 左侧目录区域 -->\r
+    <div class="sidebar">\r
+      <h3>笔记目录</h3>\r
+      <div\r
+        class="file-item"\r
+        v-for="file in fileList"\r
+        @click="loadMarkdown(file.path)"\r
+        :key="file.name"\r
+      >\r
+        {{ file.name }}\r
+      </div>\r
+    </div>\r
+\r
+    <!-- 右侧内容区域 -->\r
+    <div class="content">\r
+      <div v-html="compiledMarkdown"></div>\r
+    </div>\r
+  </div>\r
+</template>\r
+\r
+<style scoped>\r
+.container {\r
+  display: flex;\r
+  height: 100vh;\r
+}\r
+\r
+.sidebar {\r
+  width: 180px;\r
+  border-right: 1px solid #e0e0e0;\r
+  padding: 20px;\r
+  overflow-y: auto;\r
+}\r
+\r
+.content {\r
+  flex: 1;\r
+  padding: 20px;\r
+  overflow-y: auto;\r
+}\r
+.file-item {\r
+  padding: 10px 15px;\r
+  cursor: pointer;\r
+  border-radius: 4px;\r
+  margin-bottom: 5px;\r
+}\r
+\r
+.file-item:hover {\r
+  background-color: #f5f5f5;\r
+}\r
+\r
+.file-item.active {\r
+  background-color: #e3f2fd;\r
+  color: #1976d2;\r
+}\r
+</style>\r
+\`\`\`\r
+\r
+### 优化路径读取\r
+\`\`\`js\r
+import { marked } from 'marked'//pnpm i marked\r
+import { onMounted, ref } from 'vue'\r
+const modules = import.meta.glob('@/assets/markdown/*.md', {\r
+  as: 'raw', // 以原始文本形式导入\r
+  eager: true, // 立即导入（不是懒加载）\r
+})\r
+const fileList = ref([])\r
+// 当前显示的markdown内容\r
+const currentMarkdown = ref('')\r
+// 编译后的HTML\r
+const compiledMarkdown = ref('')\r
+// 处理文件名：移除路径和扩展名\r
+const activeIndex = ref(0)\r
+const formatFileName = (filePath) => {\r
+  // 例如：/src/assets/markdown/vue-tutorial.md → vue-tutorial\r
+  const fileName = filePath.split('/').pop() || ''\r
+  return fileName.replace('.md', '').replace(/-/g, ' ')\r
+}\r
+// 初始化文件列表\r
+const initFileList = () => {\r
+  fileList.value = Object.entries(modules).map(([path, content]) => {\r
+    return {\r
+      name: formatFileName(path),\r
+      path: path,\r
+      content: content,\r
+    }\r
+  })\r
+  fileList.value.sort((a, b) => a.name.localeCompare(b.name))\r
+}\r
+//加载\r
+const loadMarkDown = (content, index) => {\r
+  try {\r
+    activeIndex.value = index\r
+    currentMarkdown.value = content\r
+    compiledMarkdown.value = marked.parse(content)\r
+  } catch (err) {\r
+    console.error(err)\r
+  }\r
+}\r
+onMounted(() => {\r
+  initFileList()\r
+  if (fileList.value.length > 0) {\r
+    loadMarkDown(fileList.value[0].content, 0)\r
+  }\r
+})\r
+\`\`\`\r
+\`\`\`html\r
+  <div class="container">\r
+    <!-- 左侧目录区域 -->\r
+    <div class="sidebar">\r
+      <h3>笔记目录</h3>\r
+      <div\r
+        class="file-item"\r
+        v-for="(file, index) in fileList"\r
+        :key="file.name"\r
+        @click="loadMarkDown(file.content, index)"\r
+        :class="{ active: activeIndex === index }"\r
+      >\r
+        {{ file.name }}\r
+      </div>\r
+    </div>\r
+\r
+    <!-- 右侧内容区域 -->\r
+    <div class="content">\r
+      <div v-html="compiledMarkdown"></div>\r
+    </div>\r
+  </div>\r
+\`\`\``;export{r as default};

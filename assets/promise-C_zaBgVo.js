@@ -26,13 +26,54 @@ const n=`# Promise有几种状态
 
 **示例**：
 \`\`\`javascript
-const promise = new Promise((resolve, reject) => {
-  setTimeout(() => resolve('成功'), 1000);
-});
-promise.then(result => console.log(result));
-\`\`\`
+ const promise=new Promise((resolve,reject)=>{
+            //异步操作
+    setTimeout(()=>{
+        const success=false
+        if(success){
+            resolve('操作成功')
+        }else{
+            reject(new Error('操作失败'))
+        }
+    },1000)
+})
 
----
+promise.then(res=>{
+    console.log('成功:', res);
+}).catch(err=>{
+    console.log('失败:', err.message);
+}).finally(()=>{
+    console.log('操作结束');
+})
+//控制台结果
+//失败: 操作失败
+//操作结束
+\`\`\`
+## Promise 的静态方法
+### Promise.resolve() / Promise.reject()
+快速创建已成功/失败的 Promise
+\`\`\`js
+Promise.resolve('成功').then(console.log)
+Promise.reject('失败').catch(console.error);
+\`\`\`
+### Promise.all() - 全部成功才算成功
+\`\`\`js
+const p1=Promise.resolve(1)
+const p2=Promise.resolve(2)
+const p3=new Promise((reslove,reject)=>{
+let success=true
+setTimeout(()=>{
+    if(success){
+        reslove(3+'我是慢的')
+    }else{
+        reject('失败了')
+    }
+},1000)
+})
+Promise.all([p1,p2,p3])
+.then(val=>console.log(val))// [1, 2, '3我是慢的'] (等待最慢的完成了才会打印)
+.catch(err=>console.error(err));//1.html:24 失败了// 任何一个失败就失败
+\`\`\`       
 
 ### **2. Promise 有哪些常用方法？**
 **回答思路**：
