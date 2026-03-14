@@ -1,5 +1,46 @@
 const n=`# 箭头函数和普通函数的区别
 
+- 普通函数有名字，箭头函数是匿名的
+- 普通函数可用作构造函数可以调用new,有原型，箭头函数不能调用new,没有原型,箭头函数是匿名的,所以没有构造函数,用完就扔掉了
+- 箭头函数没有 \`arguments\` 对象，普通函数有 \`arguments\`对象
+- \`this\`指向不同：
+  + 箭头函数的this在定义的时候就确定了，指向上一层的this
+  + 普通函数的this在调用的时候才确定，指向调用它的对象
+  1.  **需要动态 \`this\` 时用普通函数**：比如对象的方法、事件处理函数（可能需要 \`this\` 指向被点击的按钮）、构造函数。
+  2.  **需要固定 \`this\` 时用箭头函数**：比如在 \`setTimeout\`、\`Promise\` 等回调函数中，为了避免 \`this\` 指向出错，常用箭头函数来“锁定”外层的 \`this\`。
+- 普通函数可以通过call,apply,bind来改变this指向,箭头函数不受这三个方法的控制
+
+| 特性 | 普通函数 | 箭头函数 |
+| :--- | :--- | :--- |
+| **\`this\` 指向** | **动态**，由**调用者**决定 | **静态**，由**定义时的作用域**决定 |
+| **能否用 \`call/apply/bind\` 改变 \`this\`** | **可以** | **不可以** |
+| **能否作为构造函数 (用 \`new\`)** | **可以** | **不可以** |
+| **\`arguments\`对象** | 有自己的 \`arguments\` 对象 | 没有自己的 \`arguments\`，使用外层函数的 |
+
+## arguments对象
+\`\`\`javascript
+function normal(){
+  return arguments.length;
+}
+console.log(normal(1,2,3));//3
+
+let arrow=()=>arguments.length;
+console.log(arrow(1,2,3));
+  //会报这个
+  //1.html:15 Uncaught ReferenceError: arguments is not defined
+  // at arrow (1.html:15:31)
+  // at 1.html:16:19
+\`\`\`
+箭头函数可以拿到上层作用域的 \`arguments\` 对象
+\`\`\`javascript
+function normal(){
+    return()=>arguments.length;
+}
+let arrow=normal(1,2,3)
+console.log(arrow())
+//3
+\`\`\`
+        
 ## this指向
 \`\`\`ts
 let obj={
@@ -14,7 +55,23 @@ let obj={
 obj.a();//this代表obj
 obj.b();//this代表window
 \`\`\`
+\`\`\`javascript
+let normal={
+  bibi:'哔哔',
+  norFn:function(){
+      setTimeout(function(){console.log(this.bibi);},10)
+  }
+}
 
+let arrow={
+  bibi:'哔哔',
+  arrowFn:function(){
+      setTimeout(()=>{console.log(this.bibi);},10)
+  }
+}
+normal.norFn()//undefined
+arrow.arrowFn()//哔哔
+\`\`\`
 ## 普通函数中的 \`this\`（会变心的家伙）
 
 普通函数里的 \`this\` 是**动态**的，它指向**调用这个函数的“那个人”**。谁最后调用了这个函数，\`this\` 就指向谁。
@@ -138,42 +195,4 @@ introduceArrow.call(teacher1, '物理');
 \`\`\`
 
 ---
-
-## 总结表格与核心要点
-
-| 特性 | 普通函数 | 箭头函数 |
-| :--- | :--- | :--- |
-| **\`this\` 指向** | **动态**，由**调用者**决定 | **静态**，由**定义时的作用域**决定 |
-| **能否用 \`call/apply/bind\` 改变 \`this\`** | **可以** | **不可以** |
-| **能否作为构造函数 (用 \`new\`)** | **可以** | **不可以** |
-| ** arguments\` 对象** | 有自己的 \`arguments\` 对象 | 没有自己的 \`arguments\`，使用外层函数的 |
-
-**简单记忆：**
-
-1.  **需要动态 \`this\` 时用普通函数**：比如对象的方法、事件处理函数（可能需要 \`this\` 指向被点击的按钮）、构造函数。
-2.  **需要固定 \`this\` 时用箭头函数**：比如在 \`setTimeout\`、\`Promise\` 等回调函数中，为了避免 \`this\` 指向出错，常用箭头函数来“锁定”外层的 \`this\`。
-
-\`\`\`javascript
-// 一个综合例子
-class Timer {
-  constructor() {
-    this.counter = 0;
-  }
-
-  start() {
-    // 普通函数，setTimeout回调中的this会指向window，而不是Timer实例
-    setTimeout(function() {
-      console.log(this.counter); // 输出：undefined (因为window.counter是undefined)
-    }, 1000);
-
-    // 箭头函数，this指向定义时（即start方法）的this，也就是Timer实例
-    setTimeout(() => {
-      this.counter++;
-      console.log(this.counter); // 输出：1
-    }, 1000);
-  }
-}
-
-const myTimer = new Timer();
-myTimer.start();
-\`\`\``;export{n as default};
+`;export{n as default};
